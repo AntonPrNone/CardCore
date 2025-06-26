@@ -729,7 +729,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3417e8b2afcec74dba050905bae49b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sceneName: Game_Anton
+  sceneName: Game_Aynur
 --- !u!1 &1385669833
 GameObject:
   m_ObjectHideFlags: 0
