@@ -6,8 +6,17 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
-    guid: 99c9720ab356a0642a771bea13969a05
+    path: Assets/Scenes/Menu_Anton.unity
+    guid: 7df2db3e196c41a42a36b925f796cd5c
+  - enabled: 1
+    path: Assets/Scenes/Menu_Aynur.unity
+    guid: 11753d3e0ae072641afc0ff103a9e0f9
+  - enabled: 1
+    path: Assets/Scenes/Game_Anton.unity
+    guid: b266b1f3a2e1a664788d95df4618d9c3
+  - enabled: 1
+    path: Assets/Scenes/Game_Aynur.unity
+    guid: a23d4ec75acbc0343bf125216b2cafd0
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
