@@ -4,8 +4,8 @@ using UnityEngine;
 public class GridOnTerrainManager : MonoBehaviour
 {
     [Header("Grid Settings")]
-    public int columns = 9;
-    public int rows = 4;
+    public int columns = 18;
+    public int rows = 32;
     public GameObject cellPrefab;
     public Color color1 = Color.white;
     public Color color2 = Color.gray;
@@ -20,6 +20,8 @@ public class GridOnTerrainManager : MonoBehaviour
     private float cellWorldSize;
     private MaterialPropertyBlock propBlock;
     private GameObject[,] cellGrid;
+
+    public static GridOnTerrainManager Instance;
 
     void Start()
     {
@@ -44,6 +46,11 @@ public class GridOnTerrainManager : MonoBehaviour
         // Спавн башен
         SpawnKingTower(7, 1, 10, 4);
         SpawnEnemyTower(7, 1, 10, 4);
+    }
+
+    void Awake()
+    {
+        Instance = this;
     }
 
     void GenerateGrid()
@@ -153,14 +160,52 @@ public class GridOnTerrainManager : MonoBehaviour
         tower.name = "EnemyTower";
 
         Vector3 scale = tower.transform.localScale;
-        float towerWidth = (xMax - xMin + 1) * cellWorldSize;
-        float towerDepth = (zMax - zMin + 1) * cellWorldSize;
+        tower.transform.Rotate(0f, 180f, 0f);
+        //float towerWidth = (xMax - xMin + 1) * cellWorldSize;
+        //float towerDepth = (zMax - zMin + 1) * cellWorldSize;
 
-        tower.transform.localScale = new Vector3(towerWidth, scale.y, towerDepth);
+        //tower.transform.localScale = new Vector3(towerWidth, scale.y, towerDepth);
     }
 
     bool IsInBounds(int x, int z)
     {
         return x >= 0 && x < columns && z >= 0 && z < rows;
+    }
+
+    public GameObject GetCell(int x, int z)
+    {
+        if (x >= 0 && x < columns && z >= 0 && z < rows)
+            return cellGrid[x, z];
+        return null;
+    }
+
+    public Vector3 GetWorldPosition(int x, int z)
+    {
+        GameObject cell = GetCell(x, z);
+        return cell != null ? cell.transform.position : Vector3.zero;
+    }
+
+    public Vector2Int GetGridCoordinates(Vector3 worldPos)
+    {
+        Vector3 terrainPos = worldPos - terrain.transform.position;
+
+        float terrainWidth = terrain.terrainData.size.x;
+        float terrainDepth = terrain.terrainData.size.z;
+
+        float usableWidth = columns * cellWorldSize;
+        float usableDepth = rows * cellWorldSize;
+
+        float startX = (terrainWidth - usableWidth) / 2f;
+        float startZ = (terrainDepth - usableDepth) / 2f;
+
+        int x = Mathf.FloorToInt((terrainPos.x - startX) / cellWorldSize);
+        int z = Mathf.FloorToInt((terrainPos.z - startZ) / cellWorldSize);
+
+        return new Vector2Int(x, z);
+    }
+
+    public float GetCellWorldSize()
+    {
+        return cellWorldSize;
     }
 }

@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: 5985092834971299495}
   - component: {fileID: 7472318813412591371}
   - component: {fileID: -2981438165568876705}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: GZ_Blue
-  m_TagString: Untagged
+  m_TagString: Tower
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -30,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 100, y: 100, z: 100}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 927825851161730125}
@@ -43,7 +43,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2172732241463152971}
-  m_Mesh: {fileID: -5495902117074765545, guid: 5523a549c3f8d493ca5b874ed275777d, type: 3}
+  m_Mesh: {fileID: -4772129107523583613, guid: 5523a549c3f8d493ca5b874ed275777d, type: 3}
 --- !u!23 &5985092834971299495
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -106,10 +106,10 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.04, y: 0.04, z: 0.04}
-  m_Center: {x: 0, y: 0.02, z: 0}
+  m_Size: {x: 4.5, y: 4.2500014, z: 4.25}
+  m_Center: {x: 0, y: 2.1249998, z: 0.00000023841858}
 --- !u!114 &-2981438165568876705
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -139,7 +139,7 @@ GameObject:
   - component: {fileID: 3339220893843600424}
   - component: {fileID: 727170561198473726}
   - component: {fileID: 6612877826483645308}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -155,7 +155,7 @@ RectTransform:
   m_GameObject: {fileID: 4215758065774584655}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.0001, y: 0.0001, z: 0.0001}
+  m_LocalScale: {x: 0.01, y: 0.01, z: 0.01}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2662723587559424407}
@@ -163,7 +163,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0.07}
+  m_AnchoredPosition: {x: 0, y: 6.5}
   m_SizeDelta: {x: 250, y: 250}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &3339220893843600424
@@ -241,7 +241,7 @@ GameObject:
   - component: {fileID: 4876869242914290450}
   - component: {fileID: 7782467569482678571}
   - component: {fileID: 2823744701866408559}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: HP_GZ
   m_TagString: Untagged
   m_Icon: {fileID: 0}
