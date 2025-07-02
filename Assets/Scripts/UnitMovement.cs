@@ -1,10 +1,9 @@
 using UnityEngine;
 
-[RequireComponent(typeof(CapsuleCollider))]
+[RequireComponent(typeof(Rigidbody))]
 public class UnitMovement : MonoBehaviour
 {
     public float moveSpeed = 2f;
-
     public string enemyTag = "Unit";
     public string enemyTowerTag = "Tower";
 
@@ -15,13 +14,16 @@ public class UnitMovement : MonoBehaviour
     private Vector2Int currentCell;
     private Vector2Int targetCell;
 
-    public LayerMask obstacleLayers; // выбираешь в инспекторе слои препятствий
-
-    private CapsuleCollider capsuleCollider;
+    private Rigidbody rb;
 
     void Start()
     {
-        capsuleCollider = GetComponent<CapsuleCollider>();
+        rb = GetComponent<Rigidbody>();
+        if (!rb.isKinematic)
+        {
+            Debug.LogWarning($"{name}: Rigidbody РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ isKinematic = true РґР»СЏ РєРѕСЂСЂРµРєС‚РЅРѕРіРѕ СѓРїСЂР°РІР»РµРЅРёСЏ РґРІРёР¶РµРЅРёРµРј.");
+            rb.isKinematic = true;
+        }
     }
 
     void Update()
@@ -51,6 +53,11 @@ public class UnitMovement : MonoBehaviour
         if (target != null)
         {
             targetCell = GridOnTerrainManager.Instance.GetGridCoordinates(target.position);
+
+            // РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј С†РµР»СЊ РІ UnitCombat
+            UnitCombat combat = GetComponent<UnitCombat>();
+            if (combat != null)
+                combat.SetTarget(target);
         }
     }
 
@@ -88,36 +95,13 @@ public class UnitMovement : MonoBehaviour
         Vector3 direction = (worldTarget - transform.position).normalized;
         float distance = Vector3.Distance(transform.position, worldTarget);
 
-        // Проверяем препятствия с помощью OverlapSphere на радиус коллайдера
-        Vector3 checkPos = transform.position + direction * (distance + 0.0f);
-        float collisionRadius = capsuleCollider.radius * Mathf.Max(transform.localScale.x, transform.localScale.z);
-
-        Collider[] hits = Physics.OverlapSphere(checkPos, collisionRadius, obstacleLayers);
-
-        bool pathBlocked = false;
-
-        foreach (var hitCollider in hits)
-        {
-            if (hitCollider.gameObject == this.gameObject) continue;
-
-            pathBlocked = true;
-            break;
-        }
-
-        if (!pathBlocked)
+        if (!Physics.Raycast(transform.position, direction, distance + 0.1f))
         {
             transform.position = Vector3.MoveTowards(transform.position, worldTarget, moveSpeed * Time.deltaTime);
-
-            // Поворот к направлению движения
-            if (direction != Vector3.zero)
-            {
-                Quaternion targetRot = Quaternion.LookRotation(direction);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, 10f * Time.deltaTime);
-            }
         }
         else
         {
-            Debug.Log($"{name}: путь заблокирован");
+            Debug.Log($"{name}: РїСѓС‚СЊ Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅ");
         }
     }
 
