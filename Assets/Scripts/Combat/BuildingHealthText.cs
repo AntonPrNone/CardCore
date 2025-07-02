@@ -3,7 +3,7 @@ using TMPro;
 
 public class BuildingHealthText : MonoBehaviour
 {
-    private BuildingHealth buildingHealth;
+    private BuildingCombat buildingCombat;
     private TextMeshProUGUI text;
 
     void Awake()
@@ -15,8 +15,8 @@ public class BuildingHealthText : MonoBehaviour
         Transform current = transform;
         while (current != null)
         {
-            buildingHealth = current.GetComponent<BuildingHealth>();
-            if (buildingHealth != null)
+            buildingCombat = current.GetComponent<BuildingCombat>();
+            if (buildingCombat != null)
                 break;
             current = current.parent;
         }
@@ -27,7 +27,7 @@ public class BuildingHealthText : MonoBehaviour
             enabled = false;
         }
 
-        if (buildingHealth == null)
+        if (buildingCombat == null)
         {
             Debug.LogWarning("BuildingHealth не найден");
             enabled = false;
@@ -36,9 +36,9 @@ public class BuildingHealthText : MonoBehaviour
 
     void Update()
     {
-        if (buildingHealth != null && text != null)
+        if (buildingCombat != null && text != null)
         {
-            text.text = $"{Mathf.CeilToInt(buildingHealth.currentHealth)} / {Mathf.CeilToInt(buildingHealth.maxHealth)}";
+            text.text = $"{Mathf.CeilToInt(buildingCombat.currentHealth)} / {Mathf.CeilToInt(buildingCombat.maxHealth)}";
 
             // Поворачиваем к камере
             if (Camera.main != null)

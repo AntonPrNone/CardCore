@@ -171,7 +171,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 42bd5a66f45114b03ba63019b62831f8, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -206,10 +206,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 10
-  rotationSpeed: 10
   enemyTag: Unit
   enemyTowerTag: Tower
-  cellSize: 1
   targetCheckInterval: 0.5
 --- !u!54 &6057906387359102273
 Rigidbody:
@@ -275,13 +273,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 100
   currentHealth: 0
-  damage: 10
-  attackRate: 1
-  initialAttackDelay: 0.5
-  attackRange: 1.5
-  attackTargetLayers:
-    serializedVersion: 2
-    m_Bits: 384
+  attackDamage: 10
+  attackSpeed: 1
+  hpText: {fileID: 0}
 --- !u!1 &8833692782644506339
 GameObject:
   m_ObjectHideFlags: 0
