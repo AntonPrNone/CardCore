@@ -272,10 +272,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
-  currentHealth: 0
   attackDamage: 10
   attackSpeed: 1
+  dissolveDuration: 1
+  onDeath:
+    m_PersistentCalls:
+      m_Calls: []
   hpText: {fileID: 0}
+  currentHealth: 0
 --- !u!1 &8833692782644506339
 GameObject:
   m_ObjectHideFlags: 0
