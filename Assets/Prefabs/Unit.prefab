@@ -117,7 +117,7 @@ GameObject:
   - component: {fileID: 6057906387359102273}
   - component: {fileID: 8738356599020456312}
   - component: {fileID: -3086853862804165483}
-  - component: {fileID: -1179696835981380476}
+  - component: {fileID: 8486436015191128876}
   m_Layer: 7
   m_Name: Unit
   m_TagString: Unit
@@ -206,7 +206,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ab4a363eb2a1e6544939243b67654fa1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 10
   enemyTag: Unit
   enemyTowerTag: Tower
   targetCheckInterval: 0.5
@@ -273,15 +272,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
-  attackDamage: 10
-  attackSpeed: 1
-  dissolveDuration: 1
-  onDeath:
-    m_PersistentCalls:
-      m_Calls: []
-  hpText: {fileID: 0}
-  currentHealth: 0
---- !u!195 &-1179696835981380476
+  attackRange: 2
+  attackCooldown: 1
+  damage: 10
+--- !u!195 &8486436015191128876
 NavMeshAgent:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -291,16 +285,16 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: -334000983
   m_Radius: 0.5
-  m_Speed: 2
+  m_Speed: 3.5
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 120
-  m_StoppingDistance: 1.5
+  m_StoppingDistance: 0
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 2
-  m_BaseOffset: 1
+  m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
 --- !u!1 &8833692782644506339

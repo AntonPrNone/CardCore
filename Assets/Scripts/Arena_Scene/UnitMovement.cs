@@ -1,115 +1,114 @@
 using UnityEngine;
+using UnityEngine.AI;
 
-[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(NavMeshAgent))]
 public class UnitMovement : MonoBehaviour
 {
-    public float moveSpeed = 2f;
+    [Header("Targeting")]
     public string enemyTag = "Unit";
     public string enemyTowerTag = "Tower";
-
     public float targetCheckInterval = 0.5f;
-    private float targetCheckTimer = 0f;
 
+    private NavMeshAgent agent;
     private Transform target;
-    private Vector2Int currentCell;
-    private Vector2Int targetCell;
+    private float targetCheckTimer;
+    private UnitCombat unitCombat;
 
-    private Rigidbody rb;
+    void Awake()
+    {
+        agent = GetComponent<NavMeshAgent>();
+        unitCombat = GetComponent<UnitCombat>();
+        if (agent == null)
+        {
+            Debug.LogError($"{name}: NavMeshAgent component is required.");
+        }
+    }
 
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
-        if (!rb.isKinematic)
-        {
-            Debug.LogWarning($"{name}: Rigidbody –¥–æ–ª–∂–µ–Ω –±—ã—Ç—å isKinematic = true –¥–ª—è –∫–æ—Ä—Ä–µ–∫—Ç–Ω–æ–≥–æ —É–ø—Ä–∞–≤–ª–µ–Ω–∏—è –¥–≤–∏–∂–µ–Ω–∏–µ–º.");
-            rb.isKinematic = true;
-        }
+        targetCheckTimer = 0f;
     }
 
     void Update()
     {
         targetCheckTimer -= Time.deltaTime;
-        if (target == null || targetCheckTimer <= 0f)
+
+        bool targetIsDead = TargetIsDead(target);
+
+        if (targetIsDead || targetCheckTimer <= 0f)
         {
             ChooseTarget();
             targetCheckTimer = targetCheckInterval;
         }
 
-        if (target == null) return;
+        if (target != null && !target.Equals(null))
+        {
+            agent.SetDestination(target.position);
+        }
+        else
+        {
+            // ÕÂÚ ˆÂÎË ó Ò·‡Ò˚‚‡ÂÏ ÔÛÚ¸, ˜ÚÓ·˚ ˛ÌËÚ ÌÂ ıÓ‰ËÎ "ÍÛ‰‡-ÚÓ"
+            if (agent.hasPath)
+            {
+                agent.ResetPath();
+            }
+        }
+    }
 
-        MoveToTarget();
+    bool TargetIsDead(Transform t)
+    {
+        if (t == null || t.Equals(null))
+            return true;
+
+        var combat = t.GetComponent<UnitCombat>();
+        return combat == null || combat.IsDead;
     }
 
     void ChooseTarget()
     {
         Transform nearestEnemy = FindClosestWithTag(enemyTag);
-        Transform enemyTower = FindClosestWithTag(enemyTowerTag);
+        Transform nearestTower = FindClosestWithTag(enemyTowerTag);
 
-        float distToEnemy = nearestEnemy ? Vector3.Distance(transform.position, nearestEnemy.position) : Mathf.Infinity;
-        float distToTower = enemyTower ? Vector3.Distance(transform.position, enemyTower.position) : Mathf.Infinity;
+        float distEnemy = nearestEnemy ? Vector3.Distance(transform.position, nearestEnemy.position) : Mathf.Infinity;
+        float distTower = nearestTower ? Vector3.Distance(transform.position, nearestTower.position) : Mathf.Infinity;
 
-        target = distToEnemy < distToTower ? nearestEnemy : enemyTower;
-
-        if (target != null)
+        if (distEnemy == Mathf.Infinity && distTower == Mathf.Infinity)
         {
-            targetCell = GridOnTerrainManager.Instance.GetGridCoordinates(target.position);
+            if (target != null)
+            {
+                target = null;
+                if (unitCombat != null)
+                    unitCombat.SetTarget(null);
+            }
+            return;
+        }
 
-            // –£—Å—Ç–∞–Ω–∞–≤–ª–∏–≤–∞–µ–º —Ü–µ–ª—å –≤ UnitCombat
-            UnitCombat combat = GetComponent<UnitCombat>();
-            if (combat != null)
-                combat.SetTarget(target);
+        Transform newTarget = distEnemy < distTower ? nearestEnemy : nearestTower;
+
+        if (newTarget != target)
+        {
+            target = newTarget;
+            if (unitCombat != null)
+                unitCombat.SetTarget(target);
         }
     }
 
     Transform FindClosestWithTag(string tag)
     {
-        GameObject[] targets = GameObject.FindGameObjectsWithTag(tag);
+        GameObject[] candidates = GameObject.FindGameObjectsWithTag(tag);
         Transform closest = null;
         float minDist = Mathf.Infinity;
 
-        foreach (var go in targets)
+        foreach (GameObject go in candidates)
         {
-            if (go == this.gameObject) continue;
-
-            float dist = Vector3.Distance(transform.position, go.transform.position);
-            if (dist < minDist)
+            if (go == gameObject) continue;
+            float d = Vector3.Distance(transform.position, go.transform.position);
+            if (d < minDist)
             {
-                minDist = dist;
+                minDist = d;
                 closest = go.transform;
             }
         }
-
         return closest;
-    }
-
-    void MoveToTarget()
-    {
-        currentCell = GridOnTerrainManager.Instance.GetGridCoordinates(transform.position);
-        Vector2Int nextStep = GetStepTowardsTarget(currentCell, targetCell);
-
-        if (nextStep == currentCell) return;
-
-        Vector3 worldTarget = GridOnTerrainManager.Instance.GetWorldPosition(nextStep.x, nextStep.y);
-        worldTarget.y = transform.position.y;
-
-        Vector3 direction = (worldTarget - transform.position).normalized;
-        float distance = Vector3.Distance(transform.position, worldTarget);
-
-        if (!Physics.Raycast(transform.position, direction, distance + 0.1f))
-        {
-            transform.position = Vector3.MoveTowards(transform.position, worldTarget, moveSpeed * Time.deltaTime);
-        }
-        else
-        {
-            Debug.Log($"{name}: –ø—É—Ç—å –∑–∞–±–ª–æ–∫–∏—Ä–æ–≤–∞–Ω");
-        }
-    }
-
-    Vector2Int GetStepTowardsTarget(Vector2Int from, Vector2Int to)
-    {
-        int dx = Mathf.Clamp(to.x - from.x, -1, 1);
-        int dz = Mathf.Clamp(to.y - from.y, -1, 1);
-
-        return new Vector2Int(from.x + dx, from.y + dz);
     }
 }

@@ -12,7 +12,8 @@ GameObject:
   - component: {fileID: 774241107224234362}
   - component: {fileID: 5985092834971299495}
   - component: {fileID: 7472318813412591371}
-  - component: {fileID: -2981438165568876705}
+  - component: {fileID: 5564182749657327412}
+  - component: {fileID: 4449339068468976063}
   m_Layer: 8
   m_Name: GZ_Blue
   m_TagString: Tower
@@ -110,7 +111,23 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 4.5, y: 4.2500014, z: 4.25}
   m_Center: {x: 0, y: 2.1249998, z: 0.00000023841858}
---- !u!114 &-2981438165568876705
+--- !u!208 &5564182749657327412
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2172732241463152971}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 2.25, y: 2.125, z: 2.125}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0, y: 2.125, z: 0}
+  m_TimeToStationary: 0.5
+--- !u!114 &4449339068468976063
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -119,18 +136,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 2172732241463152971}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cbccf0a6bc7acf44abbb59d0e88721ce, type: 3}
+  m_Script: {fileID: 11500000, guid: 5cee4223d6dd18c40801a7183a7df125, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 2900
-  attackDamage: 10
+  maxHealth: 1200
+  attackDamage: 1
   attackSpeed: 1
   dissolveDuration: 1
   onDeath:
     m_PersistentCalls:
       m_Calls: []
   hpText: {fileID: 0}
-  currentHealth: 5
+  idleColor: {r: 1, g: 1, b: 1, a: 1}
+  combatColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!1 &4215758065774584655
 GameObject:
   m_ObjectHideFlags: 0
@@ -244,7 +262,6 @@ GameObject:
   - component: {fileID: 2662723587559424407}
   - component: {fileID: 4876869242914290450}
   - component: {fileID: 7782467569482678571}
-  - component: {fileID: 2823744701866408559}
   m_Layer: 8
   m_Name: HP_GZ
   m_TagString: Untagged
@@ -370,15 +387,3 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &2823744701866408559
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5470037343841874099}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 93cb1f6cd6346de4f89e6df666c77252, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
