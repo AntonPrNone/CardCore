@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.AI;
 
 [RequireComponent(typeof(NavMeshAgent))]
-public class UnitMovement : MonoBehaviour
+public class KnightMovement : MonoBehaviour
 {
     [Header("Targeting")]
     public string enemyTag = "Unit";
@@ -11,57 +11,46 @@ public class UnitMovement : MonoBehaviour
 
     private NavMeshAgent agent;
     private Transform target;
-    private float targetCheckTimer;
-    private UnitCombat unitCombat;
+    private float targetCheckTimer = 0f;
+    private KnightCombat knightCombat;
+    private float baseAttackRange;
 
     void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
-        unitCombat = GetComponent<UnitCombat>();
-        if (agent == null)
-        {
-            Debug.LogError($"{name}: NavMeshAgent component is required.");
-        }
-    }
-
-    void Start()
-    {
-        targetCheckTimer = 0f;
+        knightCombat = GetComponent<KnightCombat>();
+        if (knightCombat != null)
+            baseAttackRange = knightCombat.GetAttackRange();
     }
 
     void Update()
     {
         targetCheckTimer -= Time.deltaTime;
-
-        bool targetIsDead = TargetIsDead(target);
-
-        if (targetIsDead || targetCheckTimer <= 0f)
+        if (TargetIsDead(target) || targetCheckTimer <= 0f)
         {
             ChooseTarget();
             targetCheckTimer = targetCheckInterval;
         }
 
-        if (target != null && !target.Equals(null))
+        if (target != null)
         {
-            agent.SetDestination(target.position);
-        }
-        else
-        {
-            // Нет цели — сбрасываем путь, чтобы юнит не ходил "куда-то"
-            if (agent.hasPath)
-            {
+            float surfaceDistance = CombatUtils.GetSurfaceDistance(transform, target);
+            if (surfaceDistance > baseAttackRange)
+                agent.SetDestination(target.position);
+            else
                 agent.ResetPath();
-            }
+        }
+        else if (agent.hasPath)
+        {
+            agent.ResetPath();
         }
     }
 
     bool TargetIsDead(Transform t)
     {
-        if (t == null || t.Equals(null))
-            return true;
-
-        var combat = t.GetComponent<UnitCombat>();
-        return combat == null || combat.IsDead;
+        if (t == null) return true;
+        var combatTarget = t.GetComponent<ICombatTarget>();
+        return combatTarget == null || combatTarget.IsDead;
     }
 
     void ChooseTarget()
@@ -77,19 +66,16 @@ public class UnitMovement : MonoBehaviour
             if (target != null)
             {
                 target = null;
-                if (unitCombat != null)
-                    unitCombat.SetTarget(null);
+                knightCombat?.SetTarget(null);
             }
             return;
         }
 
         Transform newTarget = distEnemy < distTower ? nearestEnemy : nearestTower;
-
         if (newTarget != target)
         {
             target = newTarget;
-            if (unitCombat != null)
-                unitCombat.SetTarget(target);
+            knightCombat?.SetTarget(target);
         }
     }
 
@@ -98,7 +84,6 @@ public class UnitMovement : MonoBehaviour
         GameObject[] candidates = GameObject.FindGameObjectsWithTag(tag);
         Transform closest = null;
         float minDist = Mathf.Infinity;
-
         foreach (GameObject go in candidates)
         {
             if (go == gameObject) continue;

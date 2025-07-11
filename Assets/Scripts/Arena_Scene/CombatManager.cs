@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using UnityEngine;
 
 public class CombatManager : MonoBehaviour
@@ -7,13 +7,13 @@ public class CombatManager : MonoBehaviour
 
     private struct AttackRequest
     {
-        public UnitCombat attacker;
-        public UnitCombat target;
+        public ICombatTarget attacker;
+        public ICombatTarget target;
         public float damage;
     }
 
-    private List<AttackRequest> attackQueue = new();
-    private Dictionary<UnitCombat, float> damageAccumulator = new();
+    private readonly List<AttackRequest> attackQueue = new();
+    private readonly Dictionary<ICombatTarget, float> damageAccumulator = new();
 
     void Awake()
     {
@@ -25,32 +25,48 @@ public class CombatManager : MonoBehaviour
         Instance = this;
     }
 
-    public void RegisterAttack(UnitCombat attacker, UnitCombat target, float damage)
+    public void RegisterAttack(ICombatTarget attacker, ICombatTarget target, float damage)
     {
+        Debug.Log($"[CombatManager] Ð—Ð°Ñ€ÐµÐ³Ð¸ÑÑ‚Ñ€Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð° Ð°Ñ‚Ð°ÐºÐ°: {attacker.GetTransform().name} â†’ {target.GetTransform().name} Ð½Ð° {damage}");
         if (attacker == null || target == null) return;
+
         attackQueue.Add(new AttackRequest { attacker = attacker, target = target, damage = damage });
     }
 
+
     void FixedUpdate()
     {
-        damageAccumulator.Clear();
-
-        // Íàêîïëåíèå óðîíà
         foreach (var attack in attackQueue)
         {
             if (attack.target != null && !attack.target.IsDead)
             {
-                if (!damageAccumulator.ContainsKey(attack.target))
-                    damageAccumulator[attack.target] = 0f;
-                damageAccumulator[attack.target] += attack.damage;
+                // Ð•ÑÐ»Ð¸ Ñ†ÐµÐ»ÑŒ â€” Ð±Ð°ÑˆÐ½Ñ, Ð²Ñ‹Ð·Ñ‹Ð²Ð°ÐµÐ¼ Ñ€Ð°ÑÑˆÐ¸Ñ€ÐµÐ½Ð½Ñ‹Ð¹ Ð¼ÐµÑ‚Ð¾Ð´
+                if (attack.target is TowerCombat tower)
+                {
+                    tower.TakeDamage(attack.damage, attack.attacker.GetTransform());
+                }
+                else
+                {
+                    // ÐžÐ±Ñ‹Ñ‡Ð½Ñ‹Ð¹ ÑŽÐ½Ð¸Ñ‚
+                    attack.target.TakeDamage(attack.damage);
+                }
             }
         }
-        attackQueue.Clear();
 
-        // Ïðèìåíåíèå óðîíà îäíîâðåìåííî
-        foreach (var kvp in damageAccumulator)
-        {
-            kvp.Key.TakeDamage(kvp.Value);
-        }
+        attackQueue.Clear();
     }
+}
+
+public interface ICombatTarget
+{
+    bool IsDead { get; }
+    void TakeDamage(float amount);
+    Transform GetTransform();
+}
+
+public abstract class CombatEntity : MonoBehaviour, ICombatTarget
+{
+    public abstract bool IsDead { get; }
+    public abstract void TakeDamage(float amount);
+    public virtual Transform GetTransform() => transform;
 }

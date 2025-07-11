@@ -4,12 +4,13 @@ using UnityEngine;
 using UnityEngine.Events;
 
 [RequireComponent(typeof(Collider))]
-public class TowerCombat : MonoBehaviour
+public class TowerCombat : CombatEntity
 {
     [Header("Stats")]
-    public float maxHealth = 200f;
-    public float attackDamage = 15f;
-    public float attackSpeed = 1f; // атак в секунду
+    [SerializeField] private float maxHealth = 200f;
+    [SerializeField] private float attackDamage = 15f;
+    [SerializeField] private float attackSpeed = 1f;
+    [SerializeField] private float attackRange = 5f;
 
     [Header("Dissolve Settings")]
     public float dissolveDuration = 1f;
@@ -20,25 +21,20 @@ public class TowerCombat : MonoBehaviour
 
     [Header("UI")]
     public TextMeshProUGUI hpText;
-
-    [Header("UI Colors")]
     public Color idleColor = Color.white;
     public Color combatColor = Color.red;
 
     private float currentHealth;
-    private Transform target;
+    private ICombatTarget target;
     private bool inCombat;
     private Material dissolveMaterial;
 
-    public bool IsDead => currentHealth <= 0;
+    public override bool IsDead => currentHealth <= 0;
 
     void Start()
     {
         currentHealth = maxHealth;
-
-        if (hpText == null)
-            hpText = GetComponentInChildren<TextMeshProUGUI>();
-
+        if (hpText == null) hpText = GetComponentInChildren<TextMeshProUGUI>();
         if (TryGetComponent(out Renderer renderer))
             dissolveMaterial = renderer.material;
 
@@ -47,50 +43,35 @@ public class TowerCombat : MonoBehaviour
 
     void Update()
     {
-        // Атака, если есть цель
-        if (target != null && !inCombat && !IsTargetDead())
-        {
+        bool inCombatNow = target != null && !target.IsDead;
+
+        if (!inCombat && inCombatNow)
             StartCoroutine(AttackRoutine());
-        }
 
-        // Обновление цвета текста
         if (hpText != null)
-        {
-            bool inCombatNow = target != null && !IsTargetDead();
-            Color desiredColor = inCombatNow ? combatColor : idleColor;
-
-            if (hpText.color != desiredColor)
-                hpText.color = desiredColor;
-        }
+            hpText.color = inCombatNow ? combatColor : idleColor;
     }
 
-    public void TakeDamage(float damage, Transform attacker = null)
+    public override void TakeDamage(float damage)
     {
-        if (IsDead)
-        {
-            Debug.Log($"{name}: Башня уже мертва");
-            return;
-        }
-
-        Debug.Log($"{name}: Получает урон {damage}");
+        if (IsDead) return;
 
         currentHealth -= damage;
         UpdateHPText();
 
-        // Если attacker указан, установить его как цель атаки
-        if (attacker != null && target != attacker)
-        {
-            target = attacker;
-        }
-
         if (currentHealth <= 0)
-        {
             StartCoroutine(DissolveAndDie());
-        }
     }
 
+    public void TakeDamage(float damage, Transform attacker)
+    {
+        if (attacker != null && attacker.TryGetComponent(out ICombatTarget combatTarget))
+            SetTarget(combatTarget);
 
-    public void SetTarget(Transform newTarget)
+        TakeDamage(damage);
+    }
+
+    public void SetTarget(ICombatTarget newTarget)
     {
         target = newTarget;
     }
@@ -99,43 +80,17 @@ public class TowerCombat : MonoBehaviour
     {
         inCombat = true;
 
-        while (target != null && !IsDead && !IsTargetDead())
+        while (target != null && !IsDead && !target.IsDead)
         {
-            // Пытаемся нанести урон
-            var unitCombat = target.GetComponent<UnitCombat>();
-            if (unitCombat != null)
-            {
-                unitCombat.TakeDamage(attackDamage);
-            }
-            else
-            {
-                // Можем добавить логику для других типов цели
-                break;
-            }
+            float dist = CombatUtils.GetSurfaceDistance(transform, target.GetTransform());
+
+            if (dist <= attackRange)
+                CombatManager.Instance?.RegisterAttack(this, target, attackDamage);
 
             yield return new WaitForSeconds(1f / attackSpeed);
         }
 
         inCombat = false;
-    }
-
-    public void TakeDamage(float damage)
-    {
-        if (IsDead)
-        {
-            Debug.Log($"{name}: Башня уже мертва");
-            return;
-        }
-
-        Debug.Log($"{name}: Получает урон {damage}");
-
-        currentHealth -= damage;
-        UpdateHPText();
-
-        if (currentHealth <= 0)
-        {
-            StartCoroutine(DissolveAndDie());
-        }
     }
 
     IEnumerator DissolveAndDie()
@@ -152,20 +107,11 @@ public class TowerCombat : MonoBehaviour
         while (elapsed < dissolveDuration)
         {
             elapsed += Time.deltaTime;
-            float dissolveValue = Mathf.Clamp01(elapsed / dissolveDuration);
-            dissolveMaterial.SetFloat(DissolveAmountID, dissolveValue);
+            dissolveMaterial.SetFloat(DissolveAmountID, Mathf.Clamp01(elapsed / dissolveDuration));
             yield return null;
         }
 
         Destroy(gameObject);
-    }
-
-    bool IsTargetDead()
-    {
-        if (target == null) return true;
-
-        var combat = target.GetComponent<UnitCombat>();
-        return combat == null || combat.IsDead;
     }
 
     void UpdateHPText()
@@ -176,5 +122,11 @@ public class TowerCombat : MonoBehaviour
             string max = maxHealth.ToString("0");
             hpText.text = $"{current}\n―\n{max}";
         }
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, attackRange);
     }
 }
