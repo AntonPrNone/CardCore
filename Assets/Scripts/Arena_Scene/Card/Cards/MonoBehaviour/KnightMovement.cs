@@ -21,28 +21,52 @@ public class KnightMovement : MonoBehaviour
         knightCombat = GetComponent<KnightCombat>();
         if (knightCombat != null)
             baseAttackRange = knightCombat.GetAttackRange();
+        agent.stoppingDistance = 0f; // отключаем стандартную остановку
     }
 
     void Update()
     {
         targetCheckTimer -= Time.deltaTime;
+        // Если есть цель и идёт бой — не ищем новую цель
+        if (target != null && knightCombat != null && knightCombat.InCombatWithTarget(target))
+        {
+            // Только следим за дистанцией и остановкой
+            HandleMovementToTarget();
+            return;
+        }
+
+        // Если цели нет или цель мертва — ищем новую
         if (TargetIsDead(target) || targetCheckTimer <= 0f)
         {
             ChooseTarget();
             targetCheckTimer = targetCheckInterval;
         }
 
+        HandleMovementToTarget();
+    }
+
+    void HandleMovementToTarget()
+    {
         if (target != null)
         {
             float surfaceDistance = CombatUtils.GetSurfaceDistance(transform, target);
             if (surfaceDistance > baseAttackRange)
+            {
+                if (agent.isStopped) agent.isStopped = false;
                 agent.SetDestination(target.position);
+            }
             else
+            {
+                if (!agent.isStopped) agent.isStopped = true;
                 agent.ResetPath();
+                agent.velocity = Vector3.zero; // полностью гасим движение
+            }
         }
         else if (agent.hasPath)
         {
             agent.ResetPath();
+            agent.isStopped = true;
+            agent.velocity = Vector3.zero;
         }
     }
 

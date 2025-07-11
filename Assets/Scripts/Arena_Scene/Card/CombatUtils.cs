@@ -26,8 +26,8 @@ public static class CombatUtils
         if (colA == null || colB == null)
             return Vector3.Distance(a.position, b.position); // fallback
 
-        Vector3 closestA = colA.ClosestPoint(b.position);
-        Vector3 closestB = colB.ClosestPoint(a.position);
+        Vector3 closestA = colA.ClosestPoint(colB.bounds.center);
+        Vector3 closestB = colB.ClosestPoint(closestA);
 
         return Vector3.Distance(closestA, closestB);
     }

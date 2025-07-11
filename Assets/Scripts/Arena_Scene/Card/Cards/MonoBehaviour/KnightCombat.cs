@@ -124,8 +124,34 @@ public class KnightCombat : CombatEntity
     {
         if (targetTransform != null)
         {
+            Collider colA = GetComponent<Collider>();
+            Collider colB = targetTransform.GetComponent<Collider>();
+            Vector3 from = transform.position;
+            Vector3 to = targetTransform.position;
+            if (colA != null && colB != null)
+            {
+                from = colA.ClosestPoint(colB.bounds.center);
+                to = colB.ClosestPoint(from);
+            }
             Gizmos.color = Color.cyan;
-            Gizmos.DrawLine(transform.position, targetTransform.position);
+            Gizmos.DrawLine(from, to);
+
+            // Выводим расстояние над серединой линии
+            float dist = Vector3.Distance(from, to);
+            Vector3 mid = (from + to) * 0.5f;
+#if UNITY_EDITOR
+            UnityEditor.Handles.Label(mid + Vector3.up * 0.5f, dist.ToString("F2"));
+#endif
         }
+    }
+
+    public bool InCombatWithTarget(Transform t)
+    {
+        if (t == null || targetTransform == null || targetCombat == null || targetCombat.IsDead)
+            return false;
+        if (t != targetTransform)
+            return false;
+        float surfaceDistance = CombatUtils.GetSurfaceDistance(transform, targetTransform);
+        return surfaceDistance <= card.AttackRange;
     }
 }
