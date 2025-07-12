@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using TMPro;
 
 public class CellHoverManager : MonoBehaviour
 {
@@ -15,10 +16,26 @@ public class CellHoverManager : MonoBehaviour
     [Header("Высота призрака над клеткой")]
     public float previewYOffset = 1f;
 
+    [Header("UI для фидбека")]
+    public TextMeshProUGUI feedbackText; // Ссылка на TMP текст
+    public float animationDuration = 1.5f; // Длительность анимации
+    public float riseDistance = 50f; // На сколько пикселей текст поднимается
+    public float textYOffset = 20f; // Смещение по Y от позиции клика
+
     private GameObject lastCell;
     private int selectedUnitIndex = -1;
     private UnitSelectButton selectedButton;
     private GameObject previewInstance;
+    private FeedbackTextAnimator feedbackAnimator; // Экземпляр класса анимации
+
+    void Start()
+    {
+        // Создаём экземпляр аниматора
+        if (feedbackText != null)
+        {
+            feedbackAnimator = new FeedbackTextAnimator(feedbackText, animationDuration, riseDistance, textYOffset);
+        }
+    }
 
     void Update()
     {
@@ -49,7 +66,7 @@ public class CellHoverManager : MonoBehaviour
 
                 if (Mouse.current.leftButton.wasPressedThisFrame)
                 {
-                    TrySpawnUnit(lastCell.transform.position);
+                    TrySpawnUnit(lastCell.transform.position, mousePos);
                 }
             }
             else
@@ -126,18 +143,6 @@ public class CellHoverManager : MonoBehaviour
             ShowPreview(lastCell.transform.position);
     }
 
-    private void TrySpawnUnit(Vector3 position)
-    {
-        if (selectedUnitIndex < 0 || selectedUnitIndex >= unitPrefabs.Length)
-            return;
-
-        position.y = 1f;
-        Instantiate(unitPrefabs[selectedUnitIndex], position, Quaternion.identity);
-        ClearPreview();
-
-        DeselectUnit();
-    }
-
     public void DeselectUnit()
     {
         if (selectedButton != null)
@@ -148,6 +153,24 @@ public class CellHoverManager : MonoBehaviour
 
         selectedUnitIndex = -1;
         ClearPreview();
+    }
+
+    private void TrySpawnUnit(Vector3 position, Vector2 mousePos)
+    {
+        if (selectedUnitIndex < 0 || selectedUnitIndex >= unitPrefabs.Length)
+        {
+            if (feedbackAnimator != null)
+            {
+                feedbackAnimator.PlayAnimation(mousePos);
+            }
+            return;
+        }
+
+        position.y = 1f;
+        Instantiate(unitPrefabs[selectedUnitIndex], position, Quaternion.identity);
+        ClearPreview();
+
+        DeselectUnit();
     }
 
     private void HandleHotkeys()
@@ -164,5 +187,4 @@ public class CellHoverManager : MonoBehaviour
         if (unitButtons.Length >= 3 && Keyboard.current.digit3Key.wasPressedThisFrame)
             SelectUnit(2, unitButtons[2]);
     }
-
 }
