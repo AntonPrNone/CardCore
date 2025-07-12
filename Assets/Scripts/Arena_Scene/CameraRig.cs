@@ -53,14 +53,14 @@ public class CameraRigScript : MonoBehaviour
         pos += inputDir * moveSpeed * Time.deltaTime;
 
         // Перемещение по краям экрана
-        if (mousePos.x >= Screen.width - edgeSize)
-            pos += Vector3.right * moveSpeed * Time.deltaTime;
-        if (mousePos.x <= edgeSize)
-            pos += Vector3.left * moveSpeed * Time.deltaTime;
-        if (mousePos.y >= Screen.height - edgeSize)
-            pos += Vector3.forward * moveSpeed * Time.deltaTime;
-        if (mousePos.y <= edgeSize)
-            pos += Vector3.back * moveSpeed * Time.deltaTime;
+        //if (mousePos.x >= Screen.width - edgeSize)
+        //    pos += Vector3.right * moveSpeed * Time.deltaTime;
+        //if (mousePos.x <= edgeSize)
+        //    pos += Vector3.left * moveSpeed * Time.deltaTime;
+        //if (mousePos.y >= Screen.height - edgeSize)
+        //    pos += Vector3.forward * moveSpeed * Time.deltaTime;
+        //if (mousePos.y <= edgeSize)
+        //    pos += Vector3.back * moveSpeed * Time.deltaTime;
 
         // Зум
         pos.y -= zoomInput * zoomSpeed * Time.deltaTime;

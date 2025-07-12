@@ -7,6 +7,10 @@ TagManager:
   - Cell
   - Unit
   - Tower
+  - BlueUnit
+  - RedUnit
+  - BlueTower
+  - RedTower
   layers:
   - Default
   - TransparentFX
