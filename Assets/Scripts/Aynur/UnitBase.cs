@@ -1,14 +1,17 @@
 using UnityEngine;
 
 // Абстрактный базовый класс для всех юнитов (мечники, стрелки и т.д.)
-public abstract class UnitBase : MonoBehaviour
+public class UnitBase : MonoBehaviour
 {
-    protected int maxHP = 100;            // Максимальное количество здоровья
-    protected int damage = 10;            // Урон, который юнит наносит
-    protected float attackInterval = 1.0f; // Интервал между атаками (в секундах)
-    protected float attackRange = 1.0f; // Дистанция для нанесения удара
-    protected int currentHP;           // Текущее здоровье
-    protected float lastAttackTime;    // Время последней атаки
+    protected int maxHP;                // Максимальное количество здоровья
+    protected int damage;               // Урон, который юнит наносит
+    protected float attackInterval;     // Интервал между атаками (в секундах)
+    protected float attackRange;        // Дистанция для нанесения удара
+
+    protected int currentHP;            // Текущее здоровье
+    protected float lastAttackTime;     // Время последней атаки
+
+    public UnitClassData classData;
 
     // геттеры для статов
     public int MaxHP => maxHP;
@@ -21,13 +24,19 @@ public abstract class UnitBase : MonoBehaviour
     public event System.Action<UnitBase> OnDeath;
 
     // Инициализация текущего здоровья при старте
-    protected virtual void Start()
+    protected void Start()
     {
+        // Применяем параметры из ScriptableObject
+        maxHP = classData.maxHP;
+        damage = classData.damage;
+        attackRange = classData.attackRange;
+        attackInterval = classData.attackInterval;
+
         currentHP = maxHP;
     }
 
     // Метод получения урона
-    public virtual void TakeDamage(int amount, UnitBase target)
+    public void TakeDamage(int amount, UnitBase target)
     {
         currentHP -= amount; // Уменьшаем здоровье
         Debug.Log($"{name} получил урон: {amount} от {target.name}, осталось HP: {currentHP}");
@@ -40,7 +49,7 @@ public abstract class UnitBase : MonoBehaviour
     }
 
     // Метод атаки по цели
-    public virtual void Attack(UnitBase target)
+    public void Attack(UnitBase target)
     {
         // Проверка времени между ударами
         if (Time.time - lastAttackTime >= attackInterval)
@@ -51,7 +60,7 @@ public abstract class UnitBase : MonoBehaviour
     }
 
     // Метод смерти юнита
-    protected virtual void Die()
+    protected void Die()
     {
         Debug.Log($"{name} умер.");
         OnDeath?.Invoke(this);             // Вызываем событие смерти

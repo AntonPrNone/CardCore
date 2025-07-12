@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 3291394961633182924}
   - component: {fileID: -8790545275850387628}
   - component: {fileID: 6836434953321530603}
-  - component: {fileID: -5502459775700377475}
+  - component: {fileID: 4793801423179471431}
   m_Layer: 0
   m_Name: UnitAynur
   m_TagString: BlueUnit
@@ -177,7 +177,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   orbitRadius: 1.2
---- !u!114 &-5502459775700377475
+--- !u!114 &4793801423179471431
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -186,9 +186,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 4236802128160398363}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4b4dba56bf3df0049b7eda9b88cd933d, type: 3}
+  m_Script: {fileID: 11500000, guid: 5d78c7bc8b6ae4144ac2933a4c2ecbc4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  classData: {fileID: 11400000, guid: d081f7eb1eefeb74faf0aea33a9ee66f, type: 2}
 --- !u!1 &4572598026816515772
 GameObject:
   m_ObjectHideFlags: 0

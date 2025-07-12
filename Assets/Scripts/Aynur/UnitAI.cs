@@ -8,7 +8,7 @@ enum TeamType
     Red
 }
 
-[RequireComponent(typeof(NavMeshAgent), typeof(UnitBase))]
+[RequireComponent(typeof(NavMeshAgent))]
 public class UnitAI : MonoBehaviour
 {
     [Header("AI Параметры")]
