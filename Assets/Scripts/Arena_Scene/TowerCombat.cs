@@ -3,9 +3,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 
-/// <summary>
-/// Боевая логика башни: атака, получение урона, управление здоровьем.
-/// </summary>
 [RequireComponent(typeof(Collider))]
 public class TowerCombat : CombatEntity
 {
@@ -14,6 +11,8 @@ public class TowerCombat : CombatEntity
     [SerializeField] private float attackDamage = 15f;
     [SerializeField] private float attackSpeed = 1f;
     [SerializeField] private float attackRange = 5f;
+    [Header("Team")]
+    [SerializeField] private bool isEnemy = false;
 
     [Header("Dissolve Settings")]
     [SerializeField] private float dissolveDuration = 1f;
@@ -35,6 +34,7 @@ public class TowerCombat : CombatEntity
     private const float MinHealth = 0f;
 
     public override bool IsDead => currentHealth <= MinHealth;
+    public bool IsEnemy => isEnemy;
 
     void Start()
     {
@@ -66,13 +66,26 @@ public class TowerCombat : CombatEntity
     public void TakeDamage(float damage, Transform attacker)
     {
         if (attacker != null && attacker.TryGetComponent(out ICombatTarget combatTarget))
-            SetTarget(combatTarget);
+        {
+            bool isEnemyAttacker = combatTarget is KnightCombat knight ? knight.card.IsEnemy : (combatTarget is TowerCombat tower ? tower.IsEnemy : false);
+            if (isEnemyAttacker != isEnemy) // Атаковать только противоположную сторону
+                SetTarget(combatTarget);
+        }
         TakeDamage(damage);
     }
 
     public void SetTarget(ICombatTarget newTarget)
     {
-        target = newTarget;
+        if (newTarget != null)
+        {
+            bool isEnemyTarget = newTarget is KnightCombat knight ? knight.card.IsEnemy : (newTarget is TowerCombat tower ? tower.IsEnemy : false);
+            if (isEnemyTarget != isEnemy) // Устанавливаем цель, только если стороны разные
+                target = newTarget;
+        }
+        else
+        {
+            target = null;
+        }
     }
 
     private IEnumerator AttackRoutine()

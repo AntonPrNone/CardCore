@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Управляет боевыми взаимодействиями между юнитами и башнями.
-/// </summary>
 public class CombatManager : MonoBehaviour
 {
     public static CombatManager Instance;
@@ -33,7 +30,6 @@ public class CombatManager : MonoBehaviour
     /// </summary>
     public void RegisterAttack(ICombatTarget attacker, ICombatTarget target, float damage)
     {
-        Debug.Log($"[CombatManager] Зарегистрирована атака: {attacker.GetTransform().name} → {target.GetTransform().name} на {damage}");
         if (attacker == null || target == null) return;
         attackQueue.Add(new AttackRequest { attacker = attacker, target = target, damage = damage });
     }

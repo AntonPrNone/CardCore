@@ -1,13 +1,10 @@
 using UnityEngine;
 using TMPro;
 
-/// <summary>
-/// Боевая логика рыцаря: атака, получение урона, управление здоровьем.
-/// </summary>
 [RequireComponent(typeof(Collider))]
 public class KnightCombat : CombatEntity
 {
-    private KnightCard card;
+    [SerializeField] internal KnightCard card;
     [SerializeField] private float currentHealth;
     private float cooldownTimer;
 
@@ -27,8 +24,7 @@ public class KnightCombat : CombatEntity
 
     void Start()
     {
-        card = KnightCard.Template.Clone();
-        currentHealth = card.MaxHealth;
+        currentHealth = card != null ? card.MaxHealth : KnightCard.Template.MaxHealth;
         cooldownTimer = 0f;
         hpText = GetComponentInChildren<TextMeshProUGUI>();
         UpdateHPUI();
@@ -41,8 +37,16 @@ public class KnightCombat : CombatEntity
         bool inCombat = false;
         if (targetTransform != null && targetCombat != null && !targetCombat.IsDead)
         {
-            float surfaceDistance = CombatUtils.GetSurfaceDistance(transform, targetTransform);
-            inCombat = surfaceDistance <= card.AttackRange;
+            bool isEnemyTarget = targetCombat is KnightCombat knight ? knight.card.IsEnemy : (targetCombat is TowerCombat tower ? tower.IsEnemy : false);
+            if (isEnemyTarget != card.IsEnemy)
+            {
+                float surfaceDistance = CombatUtils.GetSurfaceDistance(transform, targetTransform);
+                inCombat = surfaceDistance <= card.AttackRange;
+            }
+            else
+            {
+                SetTarget(null);
+            }
         }
 
         if (inCombat != wasInCombat)
@@ -63,14 +67,41 @@ public class KnightCombat : CombatEntity
 
     public void SetTarget(Transform t)
     {
-        targetTransform = t;
-        targetCombat = t != null ? t.GetComponent<ICombatTarget>() : null;
+        if (t != null)
+        {
+            var newTargetCombat = t.GetComponent<ICombatTarget>();
+            if (newTargetCombat != null)
+            {
+                bool isEnemyTarget = newTargetCombat is KnightCombat knight ? knight.card.IsEnemy : (newTargetCombat is TowerCombat tower ? tower.IsEnemy : false);
+                if (isEnemyTarget != card.IsEnemy)
+                {
+                    targetTransform = t;
+                    targetCombat = newTargetCombat;
+                    return;
+                }
+            }
+        }
+        targetTransform = null;
+        targetCombat = null;
+    }
+
+    public void Initialize(KnightCard newCard)
+    {
+        card = newCard;
+        currentHealth = card.MaxHealth;
+        UpdateHPUI();
     }
 
     private void PerformAttack()
     {
         if (targetCombat != null && !targetCombat.IsDead)
-            CombatManager.Instance?.RegisterAttack(this, targetCombat, card.AttackDamage);
+        {
+            bool isEnemyTarget = targetCombat is KnightCombat knight ? knight.card.IsEnemy : (targetCombat is TowerCombat tower ? tower.IsEnemy : false);
+            if (isEnemyTarget != card.IsEnemy)
+            {
+                CombatManager.Instance?.RegisterAttack(this, targetCombat, card.AttackDamage);
+            }
+        }
     }
 
     public float GetAttackRange()
@@ -85,6 +116,8 @@ public class KnightCombat : CombatEntity
             return false;
         if (t != targetTransform)
             return false;
+        bool isEnemyTarget = targetCombat is KnightCombat knight ? knight.card.IsEnemy : (targetCombat is TowerCombat tower ? tower.IsEnemy : false);
+        if (isEnemyTarget == card.IsEnemy) return false;
         float surfaceDistance = CombatUtils.GetSurfaceDistance(transform, targetTransform);
         return surfaceDistance <= card.AttackRange;
     }

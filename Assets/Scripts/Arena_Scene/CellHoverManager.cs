@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
+using UnityEngine.UI;
 
 public class CellHoverManager : MonoBehaviour
 {
@@ -17,23 +18,33 @@ public class CellHoverManager : MonoBehaviour
     public float previewYOffset = 1f;
 
     [Header("UI для фидбека")]
-    public TextMeshProUGUI feedbackText; // Ссылка на TMP текст
-    public float animationDuration = 1.5f; // Длительность анимации
-    public float riseDistance = 50f; // На сколько пикселей текст поднимается
-    public float textYOffset = 20f; // Смещение по Y от позиции клика
+    public TextMeshProUGUI feedbackText;
+    public float animationDuration = 1.5f;
+    public float riseDistance = 50f;
+    public float textYOffset = 20f;
+
+    [Header("Переключатель стороны")]
+    public Button sideToggleButton;
+    public Color friendlyColor = Color.blue;
+    public Color enemyColor = Color.red;
 
     private GameObject lastCell;
     private int selectedUnitIndex = -1;
     private UnitSelectButton selectedButton;
     private GameObject previewInstance;
-    private FeedbackTextAnimator feedbackAnimator; // Экземпляр класса анимации
+    private FeedbackTextAnimator feedbackAnimator;
+    private bool isSpawningEnemy = false;
 
     void Start()
     {
-        // Создаём экземпляр аниматора
         if (feedbackText != null)
         {
             feedbackAnimator = new FeedbackTextAnimator(feedbackText, animationDuration, riseDistance, textYOffset);
+        }
+        if (sideToggleButton != null)
+        {
+            sideToggleButton.onClick.AddListener(ToggleSide);
+            UpdateSideButtonColor();
         }
     }
 
@@ -161,23 +172,60 @@ public class CellHoverManager : MonoBehaviour
         {
             if (feedbackAnimator != null)
             {
-                feedbackAnimator.PlayAnimation(mousePos);
+                feedbackAnimator.PlayAnimation(mousePos, "Выберите юнит");
             }
             return;
         }
 
         position.y = 1f;
-        Instantiate(unitPrefabs[selectedUnitIndex], position, Quaternion.identity);
-        ClearPreview();
+        GameObject unit = Instantiate(unitPrefabs[selectedUnitIndex], position, Quaternion.identity);
 
+        if (unit.TryGetComponent(out KnightCombat knightCombat))
+        {
+            KnightCard card = new KnightCard
+            {
+                CardName = "Рыцарь",
+                Cost = 3,
+                MaxHealth = 150f,
+                AttackDamage = 2f,
+                AttackRange = 1.5f,
+                AttackCooldown = 1.2f,
+                MoveSpeed = 3.5f,
+                IsEnemy = isSpawningEnemy
+            };
+            knightCombat.Initialize(card);
+        }
+        else
+        {
+            Debug.LogError($"[CellHoverManager] Юнит {unit.name} не имеет компонент KnightCombat!");
+        }
+
+        ClearPreview();
         DeselectUnit();
+    }
+
+    private void ToggleSide()
+    {
+        isSpawningEnemy = !isSpawningEnemy;
+        UpdateSideButtonColor();
+    }
+
+    private void UpdateSideButtonColor()
+    {
+        if (sideToggleButton != null)
+        {
+            var buttonImage = sideToggleButton.GetComponent<Image>();
+            if (buttonImage != null)
+            {
+                buttonImage.color = isSpawningEnemy ? enemyColor : friendlyColor;
+            }
+        }
     }
 
     private void HandleHotkeys()
     {
         if (Keyboard.current == null) return;
 
-        // Проверяем от 1 до unitButtons.Length
         if (unitButtons.Length >= 1 && Keyboard.current.digit1Key.wasPressedThisFrame)
             SelectUnit(0, unitButtons[0]);
 
@@ -186,5 +234,8 @@ public class CellHoverManager : MonoBehaviour
 
         if (unitButtons.Length >= 3 && Keyboard.current.digit3Key.wasPressedThisFrame)
             SelectUnit(2, unitButtons[2]);
+
+        if (Keyboard.current.backquoteKey.wasPressedThisFrame)
+            ToggleSide();
     }
 }

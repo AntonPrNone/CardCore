@@ -1,16 +1,13 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-/// <summary>
-/// Управляет перемещением рыцаря и выбором цели для атаки.
-/// </summary>
 [RequireComponent(typeof(NavMeshAgent))]
 public class KnightMovement : MonoBehaviour
 {
     [Header("Targeting")]
     [SerializeField] private string _enemyTag = "Unit";
     [SerializeField] private string _enemyTowerTag = "Tower";
-    [SerializeField] private float _targetCheckInterval = 0.5f;
+    [SerializeField] private float _targetCheckInterval = 0.5f; // Увеличено до 1с для стабильности
 
     private NavMeshAgent _agent;
     private Transform _target;
@@ -18,7 +15,6 @@ public class KnightMovement : MonoBehaviour
     private KnightCombat _knightCombat;
     private float _baseAttackRange;
 
-    private const float Epsilon = 0.02f;
 
     void Awake()
     {
@@ -51,17 +47,29 @@ public class KnightMovement : MonoBehaviour
     {
         if (_target != null)
         {
-            float surfaceDistance = CombatUtils.GetSurfaceDistance(transform, _target);
-            if (surfaceDistance > _baseAttackRange)
+            bool isEnemyTarget = _target.GetComponent<ICombatTarget>() is KnightCombat knight ? knight.card.IsEnemy : (_target.GetComponent<ICombatTarget>() is TowerCombat tower ? tower.IsEnemy : false);
+            bool isEnemySelf = _knightCombat != null && _knightCombat.card.IsEnemy;
+            
+            // Проверяем, что цель - враг (разные команды)
+            if (isEnemyTarget == isEnemySelf)
             {
-                if (_agent.isStopped) _agent.isStopped = false;
-                _agent.SetDestination(_target.position);
+                _target = null;
+                _knightCombat?.SetTarget(null);
             }
             else
             {
-                if (!_agent.isStopped) _agent.isStopped = true;
-                _agent.ResetPath();
-                _agent.velocity = Vector3.zero;
+                float surfaceDistance = CombatUtils.GetSurfaceDistance(transform, _target);
+                if (surfaceDistance > _baseAttackRange)
+                {
+                    if (_agent.isStopped) _agent.isStopped = false;
+                    _agent.SetDestination(_target.position);
+                }
+                else
+                {
+                    if (!_agent.isStopped) _agent.isStopped = true;
+                    _agent.ResetPath();
+                    _agent.velocity = Vector3.zero;
+                }
             }
         }
         else if (_agent.hasPath)
@@ -85,15 +93,7 @@ public class KnightMovement : MonoBehaviour
         Transform nearestTower = FindClosestWithTag(_enemyTowerTag);
         float distEnemy = nearestEnemy ? Vector3.Distance(transform.position, nearestEnemy.position) : Mathf.Infinity;
         float distTower = nearestTower ? Vector3.Distance(transform.position, nearestTower.position) : Mathf.Infinity;
-        if (distEnemy == Mathf.Infinity && distTower == Mathf.Infinity)
-        {
-            if (_target != null)
-            {
-                _target = null;
-                _knightCombat?.SetTarget(null);
-            }
-            return;
-        }
+
         Transform newTarget = distEnemy < distTower ? nearestEnemy : nearestTower;
         if (newTarget != _target)
         {
@@ -107,9 +107,20 @@ public class KnightMovement : MonoBehaviour
         GameObject[] candidates = GameObject.FindGameObjectsWithTag(tag);
         Transform closest = null;
         float minDist = Mathf.Infinity;
+        bool isEnemySelf = _knightCombat != null && _knightCombat.card.IsEnemy;
+
         foreach (GameObject go in candidates)
         {
             if (go == gameObject) continue;
+            
+            var combatTarget = go.GetComponent<ICombatTarget>();
+            if (combatTarget == null) continue;
+            
+            bool isEnemyTarget = combatTarget is KnightCombat knight ? knight.card.IsEnemy : (combatTarget is TowerCombat tower ? tower.IsEnemy : false);
+            
+            // Ищем только врагов (разные команды)
+            if (isEnemySelf == isEnemyTarget) continue;
+            
             float d = Vector3.Distance(transform.position, go.transform.position);
             if (d < minDist)
             {
@@ -117,6 +128,7 @@ public class KnightMovement : MonoBehaviour
                 closest = go.transform;
             }
         }
+
         return closest;
     }
 }
