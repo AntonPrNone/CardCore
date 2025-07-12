@@ -8,7 +8,7 @@ enum TeamType
     Red
 }
 
-[RequireComponent(typeof(NavMeshAgent), typeof(UnitBase))]
+[RequireComponent(typeof(NavMeshAgent))]
 public class UnitAI : MonoBehaviour
 {
     [Header("AI Параметры")]
@@ -43,7 +43,7 @@ public class UnitAI : MonoBehaviour
         else
             Debug.LogWarning($"Неизвестный тег: {tag} у объекта {name}");
 
-        agent.stoppingDistance = selfUnit.attackRange - 1f;
+        agent.stoppingDistance = selfUnit.AttackRange - 1f;
         agent.autoBraking = true;
 
         FindNewTarget();
@@ -61,7 +61,7 @@ public class UnitAI : MonoBehaviour
         // Расстояние до цели
         float dist = Vector3.Distance(transform.position, currentTargetTransform.position);
 
-        if (dist <= selfUnit.attackRange)
+        if (dist <= selfUnit.AttackRange)
         {
             // Если в радиусе атаки — атакуем
             selfUnit.Attack(currentTargetUnit);

@@ -15,9 +15,10 @@ GameObject:
   - component: {fileID: 3291394961633182924}
   - component: {fileID: -8790545275850387628}
   - component: {fileID: 6836434953321530603}
+  - component: {fileID: 4793801423179471431}
   m_Layer: 0
   m_Name: UnitAynur
-  m_TagString: Unit
+  m_TagString: BlueUnit
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -149,7 +150,7 @@ NavMeshAgent:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4236802128160398363}
   m_Enabled: 1
-  m_AgentTypeID: 0
+  m_AgentTypeID: -334000983
   m_Radius: 0.5
   m_Speed: 3.5
   m_Acceleration: 9999
@@ -175,8 +176,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c592df1134bab149a960730efd48af2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stopDistance: 1.5
   orbitRadius: 1.2
+--- !u!114 &4793801423179471431
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4236802128160398363}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d78c7bc8b6ae4144ac2933a4c2ecbc4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  classData: {fileID: 11400000, guid: d081f7eb1eefeb74faf0aea33a9ee66f, type: 2}
 --- !u!1 &4572598026816515772
 GameObject:
   m_ObjectHideFlags: 0
@@ -385,9 +398,9 @@ MonoBehaviour:
     serializedVersion: 2
     rgba: 4294967295
   m_fontSize: 0.85
-  m_fontSizeBase: 36
+  m_fontSizeBase: 0.85
   m_fontWeight: 400
-  m_enableAutoSizing: 1
+  m_enableAutoSizing: 0
   m_fontSizeMin: 0.71
   m_fontSizeMax: 72
   m_fontStyle: 0
