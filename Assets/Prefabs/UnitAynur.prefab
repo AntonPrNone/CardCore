@@ -15,9 +15,10 @@ GameObject:
   - component: {fileID: 3291394961633182924}
   - component: {fileID: -8790545275850387628}
   - component: {fileID: 6836434953321530603}
+  - component: {fileID: -5502459775700377475}
   m_Layer: 0
   m_Name: UnitAynur
-  m_TagString: Unit
+  m_TagString: BlueUnit
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -149,7 +150,7 @@ NavMeshAgent:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4236802128160398363}
   m_Enabled: 1
-  m_AgentTypeID: 0
+  m_AgentTypeID: -334000983
   m_Radius: 0.5
   m_Speed: 3.5
   m_Acceleration: 9999
@@ -175,8 +176,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c592df1134bab149a960730efd48af2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stopDistance: 1.5
   orbitRadius: 1.2
+--- !u!114 &-5502459775700377475
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4236802128160398363}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b4dba56bf3df0049b7eda9b88cd933d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4572598026816515772
 GameObject:
   m_ObjectHideFlags: 0

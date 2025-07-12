@@ -3,16 +3,19 @@ using UnityEngine;
 // Абстрактный базовый класс для всех юнитов (мечники, стрелки и т.д.)
 public abstract class UnitBase : MonoBehaviour
 {
-    [Header("Статы юнита")]
-    public int maxHP = 100;            // Максимальное количество здоровья
-    public int damage = 10;            // Урон, который юнит наносит
-    public float attackInterval = 1.0f; // Интервал между атаками (в секундах)
-    public float attackRange = 1.0f; // Дистанция для нанесения удара
-
+    protected int maxHP = 100;            // Максимальное количество здоровья
+    protected int damage = 10;            // Урон, который юнит наносит
+    protected float attackInterval = 1.0f; // Интервал между атаками (в секундах)
+    protected float attackRange = 1.0f; // Дистанция для нанесения удара
     protected int currentHP;           // Текущее здоровье
-    public int CurrentHP => currentHP; // геттер для текущего здоровья
-
     protected float lastAttackTime;    // Время последней атаки
+
+    // геттеры для статов
+    public int MaxHP => maxHP;
+    public int Damage => damage;
+    public float AttackInterval => attackInterval;
+    public float AttackRange => attackRange;
+    public int CurrentHP => currentHP; 
 
     // Событие, которое вызывается при смерти юнита
     public event System.Action<UnitBase> OnDeath;
