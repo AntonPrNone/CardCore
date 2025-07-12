@@ -1,6 +1,9 @@
 using UnityEngine;
 using TMPro;
 
+/// <summary>
+/// Боевая логика рыцаря: атака, получение урона, управление здоровьем.
+/// </summary>
 [RequireComponent(typeof(Collider))]
 public class KnightCombat : CombatEntity
 {
@@ -15,8 +18,10 @@ public class KnightCombat : CombatEntity
     private bool wasInCombat = false;
 
     [Header("UI")]
-    public Color idleColor = Color.white;
-    public Color combatColor = Color.red;
+    [SerializeField] private Color idleColor = Color.white;
+    [SerializeField] private Color combatColor = Color.red;
+
+    private const float MaxCooldownValue = float.MaxValue;
 
     public override bool IsDead => currentHealth <= 0f;
 
@@ -25,7 +30,6 @@ public class KnightCombat : CombatEntity
         card = KnightCard.Template.Clone();
         currentHealth = card.MaxHealth;
         cooldownTimer = 0f;
-
         hpText = GetComponentInChildren<TextMeshProUGUI>();
         UpdateHPUI();
     }
@@ -35,7 +39,6 @@ public class KnightCombat : CombatEntity
         if (IsDead) return;
 
         bool inCombat = false;
-
         if (targetTransform != null && targetCombat != null && !targetCombat.IsDead)
         {
             float surfaceDistance = CombatUtils.GetSurfaceDistance(transform, targetTransform);
@@ -51,7 +54,6 @@ public class KnightCombat : CombatEntity
         if (!inCombat) return;
 
         cooldownTimer -= Time.deltaTime;
-
         if (cooldownTimer <= 0f)
         {
             PerformAttack();
@@ -65,7 +67,7 @@ public class KnightCombat : CombatEntity
         targetCombat = t != null ? t.GetComponent<ICombatTarget>() : null;
     }
 
-    void PerformAttack()
+    private void PerformAttack()
     {
         if (targetCombat != null && !targetCombat.IsDead)
             CombatManager.Instance?.RegisterAttack(this, targetCombat, card.AttackDamage);
@@ -77,18 +79,26 @@ public class KnightCombat : CombatEntity
         return card.AttackRange;
     }
 
+    public bool InCombatWithTarget(Transform t)
+    {
+        if (t == null || targetTransform == null || targetCombat == null || targetCombat.IsDead)
+            return false;
+        if (t != targetTransform)
+            return false;
+        float surfaceDistance = CombatUtils.GetSurfaceDistance(transform, targetTransform);
+        return surfaceDistance <= card.AttackRange;
+    }
+
     public override void TakeDamage(float amount)
     {
         if (IsDead) return;
-
         currentHealth -= amount;
         UpdateHPUI();
-
         if (currentHealth <= 0f)
             Die();
     }
 
-    void UpdateHPUI()
+    private void UpdateHPUI()
     {
         if (hpText != null)
         {
@@ -98,16 +108,13 @@ public class KnightCombat : CombatEntity
         }
     }
 
-    void Die()
+    private void Die()
     {
-        cooldownTimer = float.MaxValue;
-
+        cooldownTimer = MaxCooldownValue;
         if (TryGetComponent(out UnityEngine.AI.NavMeshAgent agent))
             agent.isStopped = true;
-
         targetCombat = null;
         targetTransform = null;
-
         Destroy(gameObject);
     }
 
@@ -135,23 +142,11 @@ public class KnightCombat : CombatEntity
             }
             Gizmos.color = Color.cyan;
             Gizmos.DrawLine(from, to);
-
-            // Выводим расстояние над серединой линии
             float dist = Vector3.Distance(from, to);
             Vector3 mid = (from + to) * 0.5f;
 #if UNITY_EDITOR
             UnityEditor.Handles.Label(mid + Vector3.up * 0.5f, dist.ToString("F2"));
 #endif
         }
-    }
-
-    public bool InCombatWithTarget(Transform t)
-    {
-        if (t == null || targetTransform == null || targetCombat == null || targetCombat.IsDead)
-            return false;
-        if (t != targetTransform)
-            return false;
-        float surfaceDistance = CombatUtils.GetSurfaceDistance(transform, targetTransform);
-        return surfaceDistance <= card.AttackRange;
     }
 }

@@ -10,7 +10,7 @@ public class KnightCard
 
     public static readonly KnightCard Template = new()
     {
-        CardName = "Πϋφΰπό",
+        CardName = "Π Ρ‹Ρ†Π°Ρ€Ρ",
         Cost = 3,
         MaxHealth = 150f,
         AttackDamage = 2f,

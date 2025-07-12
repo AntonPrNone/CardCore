@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Управляет боевыми взаимодействиями между юнитами и башнями.
+/// </summary>
 public class CombatManager : MonoBehaviour
 {
     public static CombatManager Instance;
@@ -25,14 +28,15 @@ public class CombatManager : MonoBehaviour
         Instance = this;
     }
 
+    /// <summary>
+    /// Регистрирует атаку для обработки в следующем FixedUpdate.
+    /// </summary>
     public void RegisterAttack(ICombatTarget attacker, ICombatTarget target, float damage)
     {
         Debug.Log($"[CombatManager] Зарегистрирована атака: {attacker.GetTransform().name} → {target.GetTransform().name} на {damage}");
         if (attacker == null || target == null) return;
-
         attackQueue.Add(new AttackRequest { attacker = attacker, target = target, damage = damage });
     }
-
 
     void FixedUpdate()
     {
@@ -40,23 +44,23 @@ public class CombatManager : MonoBehaviour
         {
             if (attack.target != null && !attack.target.IsDead)
             {
-                // Если цель — башня, вызываем расширенный метод
                 if (attack.target is TowerCombat tower)
                 {
                     tower.TakeDamage(attack.damage, attack.attacker.GetTransform());
                 }
                 else
                 {
-                    // Обычный юнит
                     attack.target.TakeDamage(attack.damage);
                 }
             }
         }
-
         attackQueue.Clear();
     }
 }
 
+/// <summary>
+/// Интерфейс для всех объектов, которые могут участвовать в бою.
+/// </summary>
 public interface ICombatTarget
 {
     bool IsDead { get; }
@@ -64,6 +68,9 @@ public interface ICombatTarget
     Transform GetTransform();
 }
 
+/// <summary>
+/// Базовый класс для всех боевых сущностей.
+/// </summary>
 public abstract class CombatEntity : MonoBehaviour, ICombatTarget
 {
     public abstract bool IsDead { get; }

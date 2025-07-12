@@ -1,109 +1,108 @@
 using UnityEngine;
 using UnityEngine.AI;
 
+/// <summary>
+/// Управляет перемещением рыцаря и выбором цели для атаки.
+/// </summary>
 [RequireComponent(typeof(NavMeshAgent))]
 public class KnightMovement : MonoBehaviour
 {
     [Header("Targeting")]
-    public string enemyTag = "Unit";
-    public string enemyTowerTag = "Tower";
-    public float targetCheckInterval = 0.5f;
+    [SerializeField] private string _enemyTag = "Unit";
+    [SerializeField] private string _enemyTowerTag = "Tower";
+    [SerializeField] private float _targetCheckInterval = 0.5f;
 
-    private NavMeshAgent agent;
-    private Transform target;
-    private float targetCheckTimer = 0f;
-    private KnightCombat knightCombat;
-    private float baseAttackRange;
+    private NavMeshAgent _agent;
+    private Transform _target;
+    private float _targetCheckTimer = 0f;
+    private KnightCombat _knightCombat;
+    private float _baseAttackRange;
+
+    private const float Epsilon = 0.02f;
 
     void Awake()
     {
-        agent = GetComponent<NavMeshAgent>();
-        knightCombat = GetComponent<KnightCombat>();
-        if (knightCombat != null)
-            baseAttackRange = knightCombat.GetAttackRange();
-        agent.stoppingDistance = 0f; // отключаем стандартную остановку
+        _agent = GetComponent<NavMeshAgent>();
+        _knightCombat = GetComponent<KnightCombat>();
+        if (_knightCombat != null)
+            _baseAttackRange = _knightCombat.GetAttackRange();
+        _agent.stoppingDistance = 0f;
     }
 
     void Update()
     {
-        targetCheckTimer -= Time.deltaTime;
+        _targetCheckTimer -= Time.deltaTime;
         // Если есть цель и идёт бой — не ищем новую цель
-        if (target != null && knightCombat != null && knightCombat.InCombatWithTarget(target))
+        if (_target != null && _knightCombat != null && _knightCombat.InCombatWithTarget(_target))
         {
-            // Только следим за дистанцией и остановкой
             HandleMovementToTarget();
             return;
         }
-
         // Если цели нет или цель мертва — ищем новую
-        if (TargetIsDead(target) || targetCheckTimer <= 0f)
+        if (TargetIsDead(_target) || _targetCheckTimer <= 0f)
         {
             ChooseTarget();
-            targetCheckTimer = targetCheckInterval;
+            _targetCheckTimer = _targetCheckInterval;
         }
-
         HandleMovementToTarget();
     }
 
-    void HandleMovementToTarget()
+    private void HandleMovementToTarget()
     {
-        if (target != null)
+        if (_target != null)
         {
-            float surfaceDistance = CombatUtils.GetSurfaceDistance(transform, target);
-            if (surfaceDistance > baseAttackRange)
+            float surfaceDistance = CombatUtils.GetSurfaceDistance(transform, _target);
+            if (surfaceDistance > _baseAttackRange)
             {
-                if (agent.isStopped) agent.isStopped = false;
-                agent.SetDestination(target.position);
+                if (_agent.isStopped) _agent.isStopped = false;
+                _agent.SetDestination(_target.position);
             }
             else
             {
-                if (!agent.isStopped) agent.isStopped = true;
-                agent.ResetPath();
-                agent.velocity = Vector3.zero; // полностью гасим движение
+                if (!_agent.isStopped) _agent.isStopped = true;
+                _agent.ResetPath();
+                _agent.velocity = Vector3.zero;
             }
         }
-        else if (agent.hasPath)
+        else if (_agent.hasPath)
         {
-            agent.ResetPath();
-            agent.isStopped = true;
-            agent.velocity = Vector3.zero;
+            _agent.ResetPath();
+            _agent.isStopped = true;
+            _agent.velocity = Vector3.zero;
         }
     }
 
-    bool TargetIsDead(Transform t)
+    private bool TargetIsDead(Transform t)
     {
         if (t == null) return true;
         var combatTarget = t.GetComponent<ICombatTarget>();
         return combatTarget == null || combatTarget.IsDead;
     }
 
-    void ChooseTarget()
+    private void ChooseTarget()
     {
-        Transform nearestEnemy = FindClosestWithTag(enemyTag);
-        Transform nearestTower = FindClosestWithTag(enemyTowerTag);
-
+        Transform nearestEnemy = FindClosestWithTag(_enemyTag);
+        Transform nearestTower = FindClosestWithTag(_enemyTowerTag);
         float distEnemy = nearestEnemy ? Vector3.Distance(transform.position, nearestEnemy.position) : Mathf.Infinity;
         float distTower = nearestTower ? Vector3.Distance(transform.position, nearestTower.position) : Mathf.Infinity;
-
         if (distEnemy == Mathf.Infinity && distTower == Mathf.Infinity)
         {
-            if (target != null)
+            if (_target != null)
             {
-                target = null;
-                knightCombat?.SetTarget(null);
+                _target = null;
+                _knightCombat?.SetTarget(null);
             }
             return;
         }
-
         Transform newTarget = distEnemy < distTower ? nearestEnemy : nearestTower;
-        if (newTarget != target)
+        if (newTarget != _target)
         {
-            target = newTarget;
-            knightCombat?.SetTarget(target);
+            _target = newTarget;
+            _knightCombat?.SetTarget(_target);
         }
     }
 
-    Transform FindClosestWithTag(string tag)
+    private Transform FindClosestWithTag(string tag)
     {
         GameObject[] candidates = GameObject.FindGameObjectsWithTag(tag);
         Transform closest = null;
