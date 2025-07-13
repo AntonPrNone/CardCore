@@ -1,134 +1,139 @@
 using UnityEngine;
-using UnityEngine.AI;
+using Pathfinding;
 
-[RequireComponent(typeof(NavMeshAgent))]
+[RequireComponent(typeof(FollowerEntity))]
 public class KnightMovement : MonoBehaviour
 {
-    [Header("Targeting")]
+    [Header("Настройки")]
     [SerializeField] private string _enemyTag = "Unit";
     [SerializeField] private string _enemyTowerTag = "Tower";
-    [SerializeField] private float _targetCheckInterval = 0.5f; // Увеличено до 1с для стабильности
+    [SerializeField] private float _checkTargetInterval = 1f;
 
-    private NavMeshAgent _agent;
-    private Transform _target;
-    private float _targetCheckTimer = 0f;
-    private KnightCombat _knightCombat;
-    private float _baseAttackRange;
+    private FollowerEntity _agent;
+    private KnightCombat _combat;
+    private Transform _currentTarget;
+    private float _lastTargetCheck;
 
-
-    void Awake()
+    void Start()
     {
-        _agent = GetComponent<NavMeshAgent>();
-        _knightCombat = GetComponent<KnightCombat>();
-        if (_knightCombat != null)
-            _baseAttackRange = _knightCombat.GetAttackRange();
-        _agent.stoppingDistance = 0f;
+        _agent = GetComponent<FollowerEntity>();
+        _combat = GetComponent<KnightCombat>();
+        
+        // Базовая настройка
+        _agent.maxSpeed = _combat?.card.MoveSpeed ?? 3.5f;
+        
+        // Автоматический пересчет пути
+        var autoRepath = _agent.autoRepath;
+        autoRepath.mode = AutoRepathPolicy.Mode.EveryNSeconds;
+        autoRepath.period = _checkTargetInterval;
+        _agent.autoRepath = autoRepath;
     }
 
     void Update()
     {
-        _targetCheckTimer -= Time.deltaTime;
-        // Если есть цель и идёт бой — не ищем новую цель
-        if (_target != null && _knightCombat != null && _knightCombat.InCombatWithTarget(_target))
+        // Проверяем цель каждые N секунд
+        if (Time.time - _lastTargetCheck > _checkTargetInterval)
         {
-            HandleMovementToTarget();
-            return;
+            FindNewTarget();
+            _lastTargetCheck = Time.time;
         }
-        // Если цели нет или цель мертва — ищем новую
-        if (TargetIsDead(_target) || _targetCheckTimer <= 0f)
+
+        // Если есть цель - двигаемся к ней
+        if (_currentTarget != null)
         {
-            ChooseTarget();
-            _targetCheckTimer = _targetCheckInterval;
+            MoveToTarget();
         }
-        HandleMovementToTarget();
     }
 
-    private void HandleMovementToTarget()
+    private void FindNewTarget()
     {
-        if (_target != null)
+        // Ищем ближайшего врага
+        Transform nearestEnemy = FindNearestEnemy(_enemyTag);
+        Transform nearestTower = FindNearestEnemy(_enemyTowerTag);
+
+        // Выбираем ближайшую цель
+        Transform newTarget = null;
+        float enemyDist = nearestEnemy ? Vector3.Distance(transform.position, nearestEnemy.position) : float.MaxValue;
+        float towerDist = nearestTower ? Vector3.Distance(transform.position, nearestTower.position) : float.MaxValue;
+
+        if (enemyDist < towerDist)
+            newTarget = nearestEnemy;
+        else
+            newTarget = nearestTower;
+
+        // Обновляем цель
+        if (newTarget != _currentTarget)
         {
-            bool isEnemyTarget = _target.GetComponent<ICombatTarget>() is KnightCombat knight ? knight.card.IsEnemy : (_target.GetComponent<ICombatTarget>() is TowerCombat tower ? tower.IsEnemy : false);
-            bool isEnemySelf = _knightCombat != null && _knightCombat.card.IsEnemy;
+            _currentTarget = newTarget;
+            _combat?.SetTarget(newTarget);
             
-            // Проверяем, что цель - враг (разные команды)
-            if (isEnemyTarget == isEnemySelf)
+            // Пересчитываем stopDistance только при смене цели
+            if (newTarget != null)
             {
-                _target = null;
-                _knightCombat?.SetTarget(null);
-            }
-            else
-            {
-                float surfaceDistance = CombatUtils.GetSurfaceDistance(transform, _target);
-                if (surfaceDistance > _baseAttackRange)
-                {
-                    if (_agent.isStopped) _agent.isStopped = false;
-                    _agent.SetDestination(_target.position);
-                }
-                else
-                {
-                    if (!_agent.isStopped) _agent.isStopped = true;
-                    _agent.ResetPath();
-                    _agent.velocity = Vector3.zero;
-                }
+                float baseAttackRange = _combat?.GetAttackRange() ?? 2f;
+                float compensation = GetColliderCompensation();
+                _agent.stopDistance = baseAttackRange + compensation;
             }
         }
-        else if (_agent.hasPath)
-        {
-            _agent.ResetPath();
-            _agent.isStopped = true;
-            _agent.velocity = Vector3.zero;
-        }
     }
 
-    private bool TargetIsDead(Transform t)
+    private Transform FindNearestEnemy(string tag)
     {
-        if (t == null) return true;
-        var combatTarget = t.GetComponent<ICombatTarget>();
-        return combatTarget == null || combatTarget.IsDead;
-    }
+        GameObject[] objects = GameObject.FindGameObjectsWithTag(tag);
+        Transform nearest = null;
+        float minDistance = float.MaxValue;
+        bool isEnemySelf = _combat?.card.IsEnemy ?? false;
 
-    private void ChooseTarget()
-    {
-        Transform nearestEnemy = FindClosestWithTag(_enemyTag);
-        Transform nearestTower = FindClosestWithTag(_enemyTowerTag);
-        float distEnemy = nearestEnemy ? Vector3.Distance(transform.position, nearestEnemy.position) : Mathf.Infinity;
-        float distTower = nearestTower ? Vector3.Distance(transform.position, nearestTower.position) : Mathf.Infinity;
-
-        Transform newTarget = distEnemy < distTower ? nearestEnemy : nearestTower;
-        if (newTarget != _target)
+        foreach (GameObject obj in objects)
         {
-            _target = newTarget;
-            _knightCombat?.SetTarget(_target);
-        }
-    }
+            if (obj == gameObject) continue;
 
-    private Transform FindClosestWithTag(string tag)
-    {
-        GameObject[] candidates = GameObject.FindGameObjectsWithTag(tag);
-        Transform closest = null;
-        float minDist = Mathf.Infinity;
-        bool isEnemySelf = _knightCombat != null && _knightCombat.card.IsEnemy;
-
-        foreach (GameObject go in candidates)
-        {
-            if (go == gameObject) continue;
-            
-            var combatTarget = go.GetComponent<ICombatTarget>();
+            var combatTarget = obj.GetComponent<ICombatTarget>();
             if (combatTarget == null) continue;
-            
-            bool isEnemyTarget = combatTarget is KnightCombat knight ? knight.card.IsEnemy : (combatTarget is TowerCombat tower ? tower.IsEnemy : false);
-            
-            // Ищем только врагов (разные команды)
-            if (isEnemySelf == isEnemyTarget) continue;
-            
-            float d = Vector3.Distance(transform.position, go.transform.position);
-            if (d < minDist)
+
+            // Проверяем, что это враг
+            bool isEnemyTarget = false;
+            if (combatTarget is KnightCombat knight)
+                isEnemyTarget = knight.card.IsEnemy;
+            else if (combatTarget is TowerCombat tower)
+                isEnemyTarget = tower.IsEnemy;
+
+            if (isEnemyTarget == isEnemySelf) continue; // Из той же команды
+
+            float distance = Vector3.Distance(transform.position, obj.transform.position);
+            if (distance < minDistance)
             {
-                minDist = d;
-                closest = go.transform;
+                minDistance = distance;
+                nearest = obj.transform;
             }
         }
 
-        return closest;
+        return nearest;
+    }
+
+    private void MoveToTarget()
+    {
+        if (_currentTarget == null) return;
+
+        // Устанавливаем цель - A* сам остановится на stopDistance
+        _agent.destination = _currentTarget.position;
+    }
+
+    private float GetColliderCompensation()
+    {
+        // Получаем размеры коллайдеров персонажа и цели
+        Collider myCollider = GetComponent<Collider>();
+        if (_currentTarget != null)
+        {
+            Collider targetCollider = _currentTarget.GetComponent<Collider>();
+            if (myCollider != null && targetCollider != null)
+            {
+                // Примерная компенсация на основе размеров коллайдеров
+                float myRadius = CombatUtils.GetColliderApproxRadius(myCollider);
+                float targetRadius = CombatUtils.GetColliderApproxRadius(targetCollider);
+                return myRadius + targetRadius;
+            }
+        }
+        return 0f;
     }
 }

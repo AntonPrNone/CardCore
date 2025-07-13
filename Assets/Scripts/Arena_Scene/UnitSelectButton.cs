@@ -3,13 +3,13 @@ using UnityEngine.UI;
 
 public class UnitSelectButton : MonoBehaviour
 {
-    [Header("Индекс юнита в массиве unitPrefabs у менеджера")]
+    [Header("РРЅРґРµРєСЃ СЋРЅРёС‚Р° РІ РјР°СЃСЃРёРІРµ unitPrefabs Сѓ РјРµРЅРµРґР¶РµСЂР°")]
     public int unitIndex;
 
-    [Header("Цвет при выборе")]
+    [Header("Р¦РІРµС‚ РїСЂРё РІС‹Р±РѕСЂРµ")]
     public Color selectedColor = Color.yellow;
 
-    [Header("Цвет по умолчанию")]
+    [Header("Р¦РІРµС‚ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ")]
     public Color normalColor = Color.white;
 
     [SerializeField] private CellHoverManager hoverManager;
@@ -26,7 +26,7 @@ public class UnitSelectButton : MonoBehaviour
     {
         if (hoverManager == null)
         {
-            Debug.LogWarning("CellHoverManager не назначен!");
+            Debug.LogWarning("CellHoverManager РЅРµ РЅР°Р·РЅР°С‡РµРЅ!");
             return;
         }
 

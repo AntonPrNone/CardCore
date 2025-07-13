@@ -28,13 +28,13 @@ public class GridOnTerrainManager : MonoBehaviour
         terrain = GetComponent<Terrain>();
         if (terrain == null)
         {
-            Debug.LogError("Этот скрипт должен быть на объекте с Terrain!");
+            Debug.LogError("Р­С‚РѕС‚ СЃРєСЂРёРїС‚ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РЅР° РѕР±СЉРµРєС‚Рµ СЃ Terrain!");
             return;
         }
 
         if (cellPrefab == null)
         {
-            Debug.LogError("Не указан prefab ячейки!");
+            Debug.LogError("РќРµ СѓРєР°Р·Р°РЅ prefab СЏС‡РµР№РєРё!");
             return;
         }
 
@@ -43,7 +43,7 @@ public class GridOnTerrainManager : MonoBehaviour
 
         GenerateGrid();
 
-        // Спавн башен
+        // РЎРїР°РІРЅ Р±Р°С€РµРЅ
         SpawnKingTower(7, 1, 10, 4);
         SpawnEnemyTower(7, 1, 10, 4);
     }
@@ -111,13 +111,13 @@ public class GridOnTerrainManager : MonoBehaviour
     {
         if (kingTowerPrefab == null)
         {
-            Debug.LogError("KingTowerPrefab не назначен!");
+            Debug.LogError("KingTowerPrefab РЅРµ РЅР°Р·РЅР°С‡РµРЅ!");
             return;
         }
 
         if (!IsInBounds(xMin, zMin) || !IsInBounds(xMax, zMax))
         {
-            Debug.LogError("Координаты башни вне пределов сетки!");
+            Debug.LogError("РљРѕРѕСЂРґРёРЅР°С‚С‹ Р±Р°С€РЅРё РІРЅРµ РїСЂРµРґРµР»РѕРІ СЃРµС‚РєРё!");
             return;
         }
 
@@ -139,7 +139,7 @@ public class GridOnTerrainManager : MonoBehaviour
     {
         if (enemyTowerPrefab == null)
         {
-            Debug.LogError("EnemyTowerPrefab не назначен!");
+            Debug.LogError("EnemyTowerPrefab РЅРµ РЅР°Р·РЅР°С‡РµРЅ!");
             return;
         }
 
@@ -148,7 +148,7 @@ public class GridOnTerrainManager : MonoBehaviour
 
         if (!IsInBounds(xMin, zMinMirror) || !IsInBounds(xMax, zMaxMirror))
         {
-            Debug.LogError("Координаты вражеской башни вне пределов сетки!");
+            Debug.LogError("РљРѕРѕСЂРґРёРЅР°С‚С‹ РІСЂР°Р¶РµСЃРєРѕР№ Р±Р°С€РЅРё РІРЅРµ РїСЂРµРґРµР»РѕРІ СЃРµС‚РєРё!");
             return;
         }
 

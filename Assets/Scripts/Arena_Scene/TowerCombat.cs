@@ -72,7 +72,7 @@ public class TowerCombat : CombatEntity
                 SetTarget(combatTarget);
         }
         TakeDamage(damage);
-    }
+        }
 
     public void SetTarget(ICombatTarget newTarget)
     {
@@ -80,7 +80,7 @@ public class TowerCombat : CombatEntity
         {
             bool isEnemyTarget = newTarget is KnightCombat knight ? knight.card.IsEnemy : (newTarget is TowerCombat tower ? tower.IsEnemy : false);
             if (isEnemyTarget != isEnemy) // Устанавливаем цель, только если стороны разные
-                target = newTarget;
+        target = newTarget;
         }
         else
         {

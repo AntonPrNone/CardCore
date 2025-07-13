@@ -10,7 +10,7 @@
 
 //    public static readonly KnightCard Template = new()
 //    {
-//        CardName = "Лучник",
+//        CardName = "Р›СѓС‡РЅРёРє",
 //        Cost = 2,
 //        MaxHealth = 100f,
 //        AttackDamage = 15f,

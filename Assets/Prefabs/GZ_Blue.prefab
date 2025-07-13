@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 774241107224234362}
   - component: {fileID: 5985092834971299495}
   - component: {fileID: 7472318813412591371}
-  - component: {fileID: 5564182749657327412}
   - component: {fileID: 4449339068468976063}
   m_Layer: 8
   m_Name: GZ_Blue
@@ -111,22 +110,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 4.5, y: 4.2500014, z: 4.25}
   m_Center: {x: 0, y: 2.1249998, z: 0.00000023841858}
---- !u!208 &5564182749657327412
-NavMeshObstacle:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2172732241463152971}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 2.25, y: 2.125, z: 2.125}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: 0, y: 2.125, z: 0}
-  m_TimeToStationary: 0.5
 --- !u!114 &4449339068468976063
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -142,6 +125,8 @@ MonoBehaviour:
   maxHealth: 1200
   attackDamage: 1
   attackSpeed: 1
+  attackRange: 5
+  isEnemy: 0
   dissolveDuration: 1
   onDeath:
     m_PersistentCalls:

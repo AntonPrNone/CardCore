@@ -1,4 +1,4 @@
-using UnityEngine;
+п»їusing UnityEngine;
 using DG.Tweening;
 using TMPro;
 
@@ -23,11 +23,11 @@ public class FeedbackTextAnimator
         }
     }
 
-    public void PlayAnimation(Vector2 mousePos, string message = "Выберите юнит")
+    public void PlayAnimation(Vector2 mousePos, string message = "Р’С‹Р±РµСЂРёС‚Рµ СЋРЅРёС‚")
     {
         if (feedbackText == null)
         {
-            Debug.LogWarning("Feedback Text не назначен!");
+            Debug.LogWarning("Feedback Text РЅРµ РЅР°Р·РЅР°С‡РµРЅ!");
             return;
         }
 

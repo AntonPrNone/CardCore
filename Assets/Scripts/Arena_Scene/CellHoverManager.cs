@@ -177,7 +177,7 @@ public class CellHoverManager : MonoBehaviour
             return;
         }
 
-        position.y = 1f;
+        position.y = 0f;
         GameObject unit = Instantiate(unitPrefabs[selectedUnitIndex], position, Quaternion.identity);
 
         if (unit.TryGetComponent(out KnightCombat knightCombat))
