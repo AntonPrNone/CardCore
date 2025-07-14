@@ -7,7 +7,7 @@ public class KnightMovement : MonoBehaviour
     [Header("Настройки")]
     [SerializeField] private string _enemyTag = "Unit";
     [SerializeField] private string _enemyTowerTag = "Tower";
-    [SerializeField] private float _checkTargetInterval = 1f;
+    [SerializeField] private float _checkTargetInterval = 0.5f;
 
     private FollowerEntity _agent;
     private KnightCombat _combat;
@@ -18,87 +18,75 @@ public class KnightMovement : MonoBehaviour
     {
         _agent = GetComponent<FollowerEntity>();
         _combat = GetComponent<KnightCombat>();
-        
-        // Базовая настройка
+
+        SetupAgent();
+    }
+
+    void Update()
+    {
+        if (!IsTargetValid() && Time.time - _lastTargetCheck > _checkTargetInterval)
+        {
+            UpdateTarget();
+            _lastTargetCheck = Time.time;
+        }
+
+        if (_currentTarget != null)
+        {
+            _agent.destination = _currentTarget.position;
+        }
+    }
+
+    private void SetupAgent()
+    {
         _agent.maxSpeed = _combat?.card.MoveSpeed ?? 3.5f;
-        
-        // Автоматический пересчет пути
+
         var autoRepath = _agent.autoRepath;
         autoRepath.mode = AutoRepathPolicy.Mode.EveryNSeconds;
         autoRepath.period = _checkTargetInterval;
         _agent.autoRepath = autoRepath;
     }
 
-    void Update()
+    private bool IsTargetValid()
     {
-        // Проверяем цель каждые N секунд
-        if (Time.time - _lastTargetCheck > _checkTargetInterval)
-        {
-            FindNewTarget();
-            _lastTargetCheck = Time.time;
-        }
-
-        // Если есть цель - двигаемся к ней
-        if (_currentTarget != null)
-        {
-            MoveToTarget();
-        }
+        var combatTarget = _currentTarget?.GetComponent<ICombatTarget>();
+        return combatTarget != null && !combatTarget.IsDead;
     }
 
-    private void FindNewTarget()
+    private void UpdateTarget()
     {
-        // Ищем ближайшего врага
-        Transform nearestEnemy = FindNearestEnemy(_enemyTag);
-        Transform nearestTower = FindNearestEnemy(_enemyTowerTag);
+        Transform newTarget = GetNearestValidTarget();
+        if (newTarget == _currentTarget) return;
 
-        // Выбираем ближайшую цель
-        Transform newTarget = null;
-        float enemyDist = nearestEnemy ? Vector3.Distance(transform.position, nearestEnemy.position) : float.MaxValue;
-        float towerDist = nearestTower ? Vector3.Distance(transform.position, nearestTower.position) : float.MaxValue;
+        _currentTarget = newTarget;
+        _combat?.SetTarget(newTarget);
+        _agent.stopDistance = (_combat?.GetAttackRange() ?? 2f) + GetColliderCompensation(newTarget);
+    }
 
-        if (enemyDist < towerDist)
-            newTarget = nearestEnemy;
-        else
-            newTarget = nearestTower;
+    private Transform GetNearestValidTarget()
+    {
+        Transform enemy = FindNearestEnemy(_enemyTag);
+        Transform tower = FindNearestEnemy(_enemyTowerTag);
 
-        // Обновляем цель
-        if (newTarget != _currentTarget)
-        {
-            _currentTarget = newTarget;
-            _combat?.SetTarget(newTarget);
-            
-            // Пересчитываем stopDistance только при смене цели
-            if (newTarget != null)
-            {
-                float baseAttackRange = _combat?.GetAttackRange() ?? 2f;
-                float compensation = GetColliderCompensation();
-                _agent.stopDistance = baseAttackRange + compensation;
-            }
-        }
+        float distEnemy = enemy ? Vector3.Distance(transform.position, enemy.position) : float.MaxValue;
+        float distTower = tower ? Vector3.Distance(transform.position, tower.position) : float.MaxValue;
+
+        return distEnemy < distTower ? enemy : tower;
     }
 
     private Transform FindNearestEnemy(string tag)
     {
-        GameObject[] objects = GameObject.FindGameObjectsWithTag(tag);
+        GameObject[] candidates = GameObject.FindGameObjectsWithTag(tag);
         Transform nearest = null;
         float minDistance = float.MaxValue;
+
         bool isEnemySelf = _combat?.card.IsEnemy ?? false;
 
-        foreach (GameObject obj in objects)
+        foreach (var obj in candidates)
         {
             if (obj == gameObject) continue;
 
-            var combatTarget = obj.GetComponent<ICombatTarget>();
-            if (combatTarget == null) continue;
-
-            // Проверяем, что это враг
-            bool isEnemyTarget = false;
-            if (combatTarget is KnightCombat knight)
-                isEnemyTarget = knight.card.IsEnemy;
-            else if (combatTarget is TowerCombat tower)
-                isEnemyTarget = tower.IsEnemy;
-
-            if (isEnemyTarget == isEnemySelf) continue; // Из той же команды
+            var target = obj.GetComponent<ICombatTarget>();
+            if (target == null || IsSameTeam(target, isEnemySelf)) continue;
 
             float distance = Vector3.Distance(transform.position, obj.transform.position);
             if (distance < minDistance)
@@ -111,29 +99,28 @@ public class KnightMovement : MonoBehaviour
         return nearest;
     }
 
-    private void MoveToTarget()
+    private bool IsSameTeam(ICombatTarget target, bool selfIsEnemy)
     {
-        if (_currentTarget == null) return;
-
-        // Устанавливаем цель - A* сам остановится на stopDistance
-        _agent.destination = _currentTarget.position;
+        return target switch
+        {
+            KnightCombat knight => knight.card.IsEnemy == selfIsEnemy,
+            TowerCombat tower => tower.IsEnemy == selfIsEnemy,
+            _ => true
+        };
     }
 
-    private float GetColliderCompensation()
+    private float GetColliderCompensation(Transform target)
     {
-        // Получаем размеры коллайдеров персонажа и цели
         Collider myCollider = GetComponent<Collider>();
-        if (_currentTarget != null)
+        Collider targetCollider = target?.GetComponent<Collider>();
+
+        if (myCollider != null && targetCollider != null)
         {
-            Collider targetCollider = _currentTarget.GetComponent<Collider>();
-            if (myCollider != null && targetCollider != null)
-            {
-                // Примерная компенсация на основе размеров коллайдеров
-                float myRadius = CombatUtils.GetColliderApproxRadius(myCollider);
-                float targetRadius = CombatUtils.GetColliderApproxRadius(targetCollider);
-                return myRadius + targetRadius;
-            }
+            float myRadius = CombatUtils.GetColliderApproxRadius(myCollider);
+            float targetRadius = CombatUtils.GetColliderApproxRadius(targetCollider);
+            return myRadius + targetRadius;
         }
+
         return 0f;
     }
 }
